@@ -1,28 +1,17 @@
 import streamlit as st
 import pandas as pd
-import requests
+from newsdataapi import NewsDataApiClient
 
-def fetch_newsdata_press_releases(query, page=1):
+def fetch_newsdata_press_releases(query):
     try:
-        # NewsData.io API endpoint
-        endpoint = "https://newsdata.io/api/1/latest"
-        params = {
-            "apikey": "pub_65842e7b50e277f4bae2b2350f8f2bd25924b",  # User-provided API key
-            "q": query.strip(),  # Ensure no leading/trailing spaces
-            "page": page  # Pagination for additional results
-        }
+        # Initialize the NewsData API client
+        api = NewsDataApiClient(apikey="pub_65842e7b50e277f4bae2b2350f8f2bd25924b")
 
-        # Debug: Show the constructed URL for testing
-        st.write("Requesting URL:", endpoint)
-        st.write("With Parameters:", params)
+        # Fetch news articles
+        response = api.news_api(q=query.strip(), language="en")
 
-        # Make the API request
-        response = requests.get(endpoint, params=params)
-
-        # Check response status
-        if response.status_code == 200:
-            data = response.json()
-            articles = data.get("results", [])
+        if response["status"] == "success":
+            articles = response.get("results", [])
 
             if not articles:
                 return "No news articles found for the given query."
@@ -46,13 +35,8 @@ def fetch_newsdata_press_releases(query, page=1):
                 df["Publication Date"] = pd.to_datetime(df["Publication Date"], errors="coerce")
 
             return df
-        elif response.status_code == 422:
-            # Debug: Show full response for troubleshooting
-            st.write("API Response:", response.json())
-            return "The request was unprocessable. Ensure the query and parameters are valid."
         else:
-            error_message = response.json().get("message", "Unknown error occurred.")
-            return f"Failed to fetch data: {error_message} (HTTP {response.status_code})"
+            return f"Failed to fetch data: {response.get('message', 'Unknown error occurred.')}"
 
     except Exception as e:
         return f"An error occurred while fetching from NewsData.io: {str(e)}"
