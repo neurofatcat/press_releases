@@ -12,8 +12,14 @@ def fetch_newsdata_press_releases(query, page=1):
             "page": page  # Pagination for additional results
         }
 
+        # Debug: Show the constructed URL for testing
+        st.write("Requesting URL:", endpoint)
+        st.write("With Parameters:", params)
+
         # Make the API request
         response = requests.get(endpoint, params=params)
+
+        # Check response status
         if response.status_code == 200:
             data = response.json()
             articles = data.get("results", [])
@@ -41,6 +47,8 @@ def fetch_newsdata_press_releases(query, page=1):
 
             return df
         elif response.status_code == 422:
+            # Debug: Show full response for troubleshooting
+            st.write("API Response:", response.json())
             return "The request was unprocessable. Ensure the query and parameters are valid."
         else:
             error_message = response.json().get("message", "Unknown error occurred.")
