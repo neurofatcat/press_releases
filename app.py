@@ -7,12 +7,15 @@ def fetch_newsdata_press_releases(query, page=1):
         # NewsData.io API endpoint
         endpoint = "https://newsdata.io/api/1/news"
         params = {
-            "apikey": "pub_658427ca72d97c97618f89eb495bc04ef5688",  # Replace with your actual API key
-            "q": query,
-            "language": "en",
-            "category": "business",  # Business category
-            "page": page  # Pagination for additional results
+            "apikey": "pub_65842e7b50e277f4bae2b2350f8f2bd25924b",  # Replace with your actual API key
+            "q": query.strip(),  # Ensure no leading/trailing spaces
+            "page": page
         }
+
+        # Optional parameters only if query is valid
+        if query:
+            params["language"] = "en"
+            params["category"] = "business"
 
         response = requests.get(endpoint, params=params)
         if response.status_code == 200:
@@ -42,6 +45,7 @@ def fetch_newsdata_press_releases(query, page=1):
 
             return df
         else:
+            # Provide detailed error feedback
             error_message = response.json().get("message", "Unknown error occurred.")
             return f"Failed to fetch data: {error_message} (HTTP {response.status_code})"
 
@@ -55,10 +59,13 @@ st.title("News Fetcher")
 query = st.text_input("Enter a query to fetch news articles:", value="business")
 
 if st.button("Fetch News from NewsData.io"):
-    news_data = fetch_newsdata_press_releases(query)
-
-    if isinstance(news_data, pd.DataFrame):
-        st.write("### News Articles from NewsData.io")
-        st.dataframe(news_data)
+    if not query.strip():
+        st.write("Please enter a valid query.")
     else:
-        st.write(news_data)
+        news_data = fetch_newsdata_press_releases(query)
+
+        if isinstance(news_data, pd.DataFrame):
+            st.write("### News Articles from NewsData.io")
+            st.dataframe(news_data)
+        else:
+            st.write(news_data)
