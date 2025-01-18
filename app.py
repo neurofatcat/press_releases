@@ -8,7 +8,7 @@ def fetch_newsdata_press_releases(query):
         api = NewsDataApiClient(apikey="pub_65842e7b50e277f4bae2b2350f8f2bd25924b")
 
         # Fetch news articles
-        response = api.news_api(q=query.strip(), language="en")
+        response = api.latest_api(q=query.strip(), language="en")
 
         if response["status"] == "success":
             articles = response.get("results", [])
@@ -21,7 +21,7 @@ def fetch_newsdata_press_releases(query):
                 {
                     "Title": article.get("title"),
                     "Publisher": article.get("source_id"),
-                    "Link": article.get("link"),
+                    "Link": f"[Click here]({article.get('link')})",
                     "Publication Date": article.get("pubDate")
                 }
                 for article in articles
@@ -42,10 +42,10 @@ def fetch_newsdata_press_releases(query):
         return f"An error occurred while fetching from NewsData.io: {str(e)}"
 
 # Streamlit app
-st.title("News Fetcher")
+st.title("📰 48-Hour News Checker")
 
 # Input field for search query
-query = st.text_input("Enter a query to fetch news articles:", value="pizza")
+query = st.text_input("Enter a query to fetch news articles (e.g., company name or ticker):", value="CAPR")
 
 if st.button("Fetch News from NewsData.io"):
     if not query.strip():
@@ -55,6 +55,7 @@ if st.button("Fetch News from NewsData.io"):
 
         if isinstance(news_data, pd.DataFrame):
             st.write("### News Articles from NewsData.io")
-            st.dataframe(news_data)
+            # Use Streamlit's ability to render markdown for clickable links
+            st.write(news_data.to_markdown(index=False), unsafe_allow_html=True)
         else:
             st.write(news_data)
