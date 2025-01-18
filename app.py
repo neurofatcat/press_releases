@@ -7,16 +7,14 @@ def fetch_newsdata_press_releases(query, page=1):
         # NewsData.io API endpoint
         endpoint = "https://newsdata.io/api/1/news"
         params = {
-            "apikey": "pub_65842e7b50e277f4bae2b2350f8f2bd25924b",  # Replace with your actual API key
+            "apikey": "pub_65842e7b50e277f4bae2b2350f8f2bd25924b",  # User-provided API key
             "q": query.strip(),  # Ensure no leading/trailing spaces
-            "page": page
+            "language": "en",  # Language parameter
+            "category": "business",  # Business category
+            "page": page  # Pagination for additional results
         }
 
-        # Optional parameters only if query is valid
-        if query:
-            params["language"] = "en"
-            params["category"] = "business"
-
+        # Make the API request
         response = requests.get(endpoint, params=params)
         if response.status_code == 200:
             data = response.json()
@@ -34,7 +32,7 @@ def fetch_newsdata_press_releases(query, page=1):
                     "Publication Date": article.get("pubDate")
                 }
                 for article in articles
-            ]
+            ][:10]  # Limit to 10 articles
 
             # Convert to DataFrame for better readability
             df = pd.DataFrame(news_data)
@@ -44,8 +42,9 @@ def fetch_newsdata_press_releases(query, page=1):
                 df["Publication Date"] = pd.to_datetime(df["Publication Date"], errors="coerce")
 
             return df
+        elif response.status_code == 422:
+            return "The request was unprocessable. Ensure the query and parameters are valid."
         else:
-            # Provide detailed error feedback
             error_message = response.json().get("message", "Unknown error occurred.")
             return f"Failed to fetch data: {error_message} (HTTP {response.status_code})"
 
