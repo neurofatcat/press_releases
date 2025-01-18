@@ -5,11 +5,10 @@ import requests
 def fetch_newsdata_press_releases(query, page=1):
     try:
         # NewsData.io API endpoint
-        endpoint = "https://newsdata.io/api/1/news"
+        endpoint = "https://newsdata.io/api/1/latest"
         params = {
             "apikey": "pub_65842e7b50e277f4bae2b2350f8f2bd25924b",  # User-provided API key
             "q": query.strip(),  # Ensure no leading/trailing spaces
-            "language": "en",  # Restrict to English news
             "page": page  # Pagination for additional results
         }
 
@@ -42,8 +41,7 @@ def fetch_newsdata_press_releases(query, page=1):
 
             return df
         elif response.status_code == 422:
-            error_message = response.json().get("message", "Unprocessable request. Please check query and parameters.")
-            return f"Failed to fetch data: {error_message} (HTTP 422)"
+            return "The request was unprocessable. Ensure the query and parameters are valid."
         else:
             error_message = response.json().get("message", "Unknown error occurred.")
             return f"Failed to fetch data: {error_message} (HTTP {response.status_code})"
@@ -55,7 +53,7 @@ def fetch_newsdata_press_releases(query, page=1):
 st.title("News Fetcher")
 
 # Input field for search query
-query = st.text_input("Enter a query to fetch news articles:", value="finance")
+query = st.text_input("Enter a query to fetch news articles:", value="pizza")
 
 if st.button("Fetch News from NewsData.io"):
     if not query.strip():
